@@ -1,11 +1,236 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ffd6e0">
+<title>Calendario en Vivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Baloo+2:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 12% 18%,rgba(255,255,255,.75) 0 5px,transparent 6px),
+    radial-gradient(circle at 88% 78%,rgba(255,255,255,.7) 0 7px,transparent 8px),
+    linear-gradient(135deg,#ffeaf2 0%,#ffd1e2 48%,#fff0f5 100%);
+  background-size:70px 70px,90px 90px,auto;
+  font-family:'Poppins',sans-serif;
+  display:flex;justify-content:center;align-items:center;padding:20px;
+}
+.card{
+  width:100%;max-width:420px;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(20px);border-radius:36px;
+  box-shadow:0 25px 70px rgba(180,85,136,.18);overflow:hidden;
+}
+.header{
+  background:linear-gradient(145deg,#ffb9d2 0%,#ff8fb8 55%,#ffd0e1 100%);
+  padding:24px 24px 28px;color:#8d3158;text-align:center;
+  position:relative;isolation:isolate;
+}
+.kitty{width:88px;height:70px;margin:0 auto 12px;position:relative}
+.kitty-face{
+  position:absolute;left:14px;top:13px;width:60px;height:50px;
+  background:#fff;border:2px solid #e98aaa;border-radius:48% 48% 45% 45%;
+  box-shadow:0 4px 8px rgba(150,50,90,.12);
+}
+.kitty-face:before,.kitty-face:after{
+  content:"";position:absolute;top:-9px;width:20px;height:22px;
+  background:#fff;border:2px solid #e98aaa;z-index:-1;
+}
+.kitty-face:before{left:0;transform:rotate(-28deg);border-radius:4px 12px 0 8px}
+.kitty-face:after{right:0;transform:rotate(28deg);border-radius:12px 4px 8px 0}
+.kitty-eye{position:absolute;top:21px;width:5px;height:8px;border-radius:50%;background:#4d3440}
+.kitty-eye.left{left:16px}.kitty-eye.right{right:16px}
+.kitty-nose{position:absolute;left:27px;top:29px;width:7px;height:5px;border-radius:50%;background:#f3c84b}
+.kitty-whiskers{position:absolute;top:31px;width:13px;height:1px;background:#8f7180}
+.kitty-whiskers.left{left:0;box-shadow:0 5px #8f7180}
+.kitty-whiskers.right{right:0;box-shadow:0 5px #8f7180}
+.kitty-bow{position:absolute;right:2px;top:3px;width:27px;height:19px;z-index:2}
+.kitty-bow:before,.kitty-bow:after{
+  content:"";position:absolute;top:2px;width:14px;height:15px;
+  background:#ed3f79;border:1px solid #c72e61;
+}
+.kitty-bow:before{left:0;border-radius:80% 20% 70% 30%;transform:rotate(25deg)}
+.kitty-bow:after{right:0;border-radius:20% 80% 30% 70%;transform:rotate(-25deg)}
+.kitty-bow span{position:absolute;left:11px;top:7px;width:7px;height:7px;border-radius:50%;background:#ffd4e3;z-index:3}
+.hora{font-family:'Baloo 2',cursive;font-size:clamp(44px,12vw,54px);line-height:1;letter-spacing:1px;color:#7c294e}
+.fecha-larga{margin-top:8px;font-size:15px;font-weight:400;text-transform:capitalize}
+.segundos{font-size:13px;opacity:.8;margin-top:4px}
+.controles{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 10px;gap:10px}
+.controles button{
+  border:none;background:white;width:38px;height:38px;flex:0 0 38px;border-radius:50%;
+  cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08);font-size:18px;transition:.2s;color:#8f4770;
+}
+.controles button:active{transform:scale(.9)}
+.controles button:focus-visible,.dia:focus-visible{outline:3px solid #8f5bd2;outline-offset:3px}
+.mes-titulo{font-family:'Baloo 2',cursive;font-size:20px;color:#d34e83;text-transform:capitalize;text-align:center}
+.mes-titulo:before{content:'♡ ';color:#f08bb0}
+.mes-titulo:after{content:' ♡';color:#f08bb0}
+.semana{display:grid;grid-template-columns:repeat(7,1fr);padding:8px 14px;text-align:center}
+.semana span{font-size:11px;color:#c2879e;font-weight:600;letter-spacing:1px}
+.dias{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:0 14px 22px}
+.dia{
+  border:0;background:transparent;aspect-ratio:1;display:grid;place-items:center;
+  border-radius:50%;font-family:inherit;font-size:14px;cursor:pointer;
+  position:relative;transition:background .2s,color .2s;color:#5a3a4a;
+}
+.dia.otro-mes{color:#d6b8c4}
+.dia.hoy{background:linear-gradient(135deg,#ffb2ce,#f36f9f);color:#fff;font-weight:700;box-shadow:0 6px 18px rgba(243,111,159,.35)}
+.dia.seleccionado{outline:3px solid #f08bb0;outline-offset:2px}
+.dia:hover{background:#fff0f5}
+.info{
+  margin:0 16px 16px;background:#fff0f6;border:1px solid #ffd4e3;border-radius:22px;padding:14px 16px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px;color:#75465f;
+}
+.info b{font-size:13px;color:#a64e7d;text-align:right}
+.acciones{display:flex;justify-content:center;padding:0 16px 20px}
+.hoy-btn{
+  border:1px solid #ffc5da;border-radius:20px;padding:10px 18px;background:#ffe0ec;color:#a83e6b;
+  font:600 13px 'Poppins',sans-serif;cursor:pointer;
+}
+.hoy-btn:hover{background:#f1d5e7}
+@media(max-width:360px){body{padding:10px}.card{border-radius:28px}.dias{gap:3px;padding-left:10px;padding-right:10px}.semana{padding-left:10px;padding-right:10px}.dia{font-size:13px}}
+</style>
 </head>
 <body>
-    <h1>hola mundo</h1>
+<main class="card" aria-label="Calendario en vivo">
+  <header class="header">
+    <div class="kitty" aria-label="Carita de gatita con un lazo rosa" role="img">
+      <div class="kitty-face">
+        <i class="kitty-eye left"></i><i class="kitty-eye right"></i>
+        <i class="kitty-nose"></i>
+        <i class="kitty-whiskers left"></i><i class="kitty-whiskers right"></i>
+      </div>
+      <div class="kitty-bow"><span></span></div>
+    </div>
+    <div class="hora" id="hora">00:00</div>
+    <div class="fecha-larga" id="fechaLarga">Cargando fecha...</div>
+    <div style="font-size:12px;margin-top:7px;color:#8d3158">♡ Un día bonito para ti ♡</div>
+    <div class="segundos" id="segundos">00 segundos</div>
+  </header>
+
+  <section aria-label="Calendario">
+    <div class="controles">
+      <button type="button" id="anterior" aria-label="Mes anterior">‹</button>
+      <h1 class="mes-titulo" id="mesTitulo">♡ Mes ♡</h1>
+      <button type="button" id="siguiente" aria-label="Mes siguiente">›</button>
+    </div>
+    <div class="semana" aria-hidden="true">
+      <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span>
+    </div>
+    <div class="dias" id="dias"></div>
+  </section>
+
+  <div class="info" aria-live="polite">
+    <span>Fecha seleccionada</span>
+    <b id="fechaSeleccionada">—</b>
+  </div>
+  <div class="acciones">
+    <button class="hoy-btn" type="button" id="irHoy">🎀 Volver a hoy 🎀</button>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+const reloj = document.getElementById('hora');
+const fechaLarga = document.getElementById('fechaLarga');
+const segundos = document.getElementById('segundos');
+const tituloMes = document.getElementById('mesTitulo');
+const contenedorDias = document.getElementById('dias');
+const fechaSeleccionada = document.getElementById('fechaSeleccionada');
+
+const hoy = new Date();
+let mesVisible = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+let seleccionado = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+
+const formatoFecha = new Intl.DateTimeFormat('en-US', {
+  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+});
+
+function actualizarReloj() {
+  const ahora = new Date();
+  reloj.textContent = ahora.toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit', hour12: false
+  });
+  fechaLarga.textContent = formatoFecha.format(ahora);
+  segundos.textContent = String(ahora.getSeconds()).padStart(2, '0') + ' segundos';
+}
+
+function mismaFecha(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+         a.getMonth() === b.getMonth() &&
+         a.getDate() === b.getDate();
+}
+
+function dibujarCalendario() {
+  const año = mesVisible.getFullYear();
+  const mes = mesVisible.getMonth();
+
+  tituloMes.textContent = new Intl.DateTimeFormat('es-CO', {
+    month: 'long', year: 'numeric'
+  }).format(mesVisible);
+
+  contenedorDias.innerHTML = '';
+
+  // El calendario empieza en lunes. JavaScript considera domingo como 0.
+  const primerDia = new Date(año, mes, 1);
+  const desplazamiento = (primerDia.getDay() + 6) % 7;
+  const inicio = new Date(año, mes, 1 - desplazamiento);
+
+  // Se muestran siempre 42 casillas para mantener la cuadrícula estable.
+  for (let i = 0; i < 42; i++) {
+    const fecha = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + i);
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'dia';
+    boton.textContent = fecha.getDate();
+    boton.setAttribute('aria-label', formatoFecha.format(fecha));
+
+    if (fecha.getMonth() !== mes) boton.classList.add('otro-mes');
+    if (mismaFecha(fecha, hoy)) boton.classList.add('hoy');
+    if (mismaFecha(fecha, seleccionado)) {
+      boton.classList.add('seleccionado');
+      boton.setAttribute('aria-pressed', 'true');
+    } else {
+      boton.setAttribute('aria-pressed', 'false');
+    }
+
+    boton.addEventListener('click', () => {
+      seleccionado = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+      mesVisible = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+      dibujarCalendario();
+    });
+
+    contenedorDias.appendChild(boton);
+  }
+
+  fechaSeleccionada.textContent = formatoFecha.format(seleccionado);
+}
+
+document.getElementById('anterior').addEventListener('click', () => {
+  mesVisible.setMonth(mesVisible.getMonth() - 1);
+  dibujarCalendario();
+});
+
+document.getElementById('siguiente').addEventListener('click', () => {
+  mesVisible.setMonth(mesVisible.getMonth() + 1);
+  dibujarCalendario();
+});
+
+document.getElementById('irHoy').addEventListener('click', () => {
+  const ahora = new Date();
+  seleccionado = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  mesVisible = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+  dibujarCalendario();
+});
+
+actualizarReloj();
+dibujarCalendario();
+setInterval(actualizarReloj, 1000);
+</script>
 </body>
 </html>
